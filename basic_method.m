@@ -18,10 +18,14 @@ lowEnd_Hbeta  = 18; % Hz
 highEnd_Hbeta = 30; % Hz
 lowEnd_gamma  = 30; % Hz
 highEnd_gamma = 50; % Hz
-filterOrder = 10; % Filter order
-
-for index=1:num_channels
-    for jndex=1:num_epochs
+filterOrder = 2; % Filter order
+weight = ones(3, num_channels) ;
+feature_vector(3, num_channels)=0;
+for jndex=1:num_epochs
+    theta2alpha(1:num_channels) = 0;
+    theta2Lbeta(1:num_channels) = 0;
+    theta2Hbeta(1:num_channels) = 0;  
+    for index=1:num_channels
         %% separate trial
         if (jndex < num_epochs )
             epochs(1:epochs_NS) = data(index,((jndex-1)*epochs_NS+1):(jndex*epochs_NS));
@@ -81,11 +85,19 @@ for index=1:num_channels
         
         %% form feature vector for adhd lack of attention
         % using 3 indicator. lower value for each indicator is what we aim during NF
-        theta2alpha = theta_power/alpha_power;
-        theta2Lbeta = theta_power/Lbeta_power;
-        theta2Hbeta = theta_power/Hbeta_power;
-        
+        theta2alpha(index) = theta_power/alpha_power;
+        theta2Lbeta(index) = theta_power/Lbeta_power;
+        theta2Hbeta(index) = theta_power/Hbeta_power;       
     end
+    
+    %% for specific epoch, regression 
+    % consider weight for 3 indicators
+    % consider weight for num_channels channels   
+    feature_vector(1, 1:num_channels) = theta2alpha(1:num_channels);
+    feature_vector(2, 1:num_channels) = theta2Lbeta(1:num_channels);
+    feature_vector(3, 1:num_channels) = theta2Hbeta(1:num_channels);
+    Wfeature_vector = feature_vector .* weight;    
+    attention = sum(sum(Wfeature_vector));
 end
 
 
